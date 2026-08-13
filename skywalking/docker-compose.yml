@@ -1,0 +1,48 @@
+# SkyWalking 9.x 服务端：Elasticsearch + OAP + UI
+# 启动：docker compose -f skywalking/docker-compose.yml up -d
+# 端口：agent 上报 11800(gRPC)/12800(HTTP)，UI 访问 http://localhost:18080
+version: "3.8"
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.18
+    container_name: sw-elasticsearch
+    environment:
+      - discovery.type=single-node          # 单机测试模式
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - sw-es-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+
+  oap:
+    image: apache/skywalking-oap-server:9.7.0
+    container_name: sw-oap
+    depends_on:
+      - elasticsearch
+    environment:
+      SW_STORAGE: elasticsearch
+      SW_STORAGE_ES_CLUSTER_NODES: elasticsearch:9200
+      JAVA_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "11800:11800"   # gRPC，Java Agent 上报
+      - "12800:12800"   # HTTP REST，UI/查询
+    restart: on-failure
+
+  ui:
+    image: apache/skywalking-ui:9.7.0
+    container_name: sw-ui
+    depends_on:
+      - oap
+    environment:
+      SW_OAP_ADDRESS: http://oap:12800
+    ports:
+      - "18080:8080"    # 宿主机 18080 -> 容器 8080（避开本机已占用的 8080）
+
+volumes:
+  sw-es-data:

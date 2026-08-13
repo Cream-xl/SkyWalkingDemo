@@ -1,0 +1,29 @@
+server:
+  # 避开本机已占用的 8080
+  port: 8081
+
+spring:
+  application:
+    name: skywalking-demo
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/skywalking_demo?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
+    username: root
+    password: root
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    # 本地调试打印 SQL，直观看到慢 SQL；生产建议移除或改为 logback
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+
+logging:
+  level:
+    com.cream.skywalkingdemo: info
